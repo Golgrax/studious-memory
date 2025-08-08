@@ -749,14 +749,21 @@ class BayanihanWeatherApp {
             document.body.classList.add('dark-mode');
             toggle.checked = true;
         }
-
         toggle.addEventListener('change', (e) => {
             if (e.target.checked) {
                 document.body.classList.add('dark-mode');
                 Utils.Storage.set('theme', 'dark');
+                if (this.state.weatherMap) {
+                    this.state.weatherMap.removeLayer(this.lightMap);
+                    this.state.weatherMap.addLayer(this.darkMap);
+                }
             } else {
                 document.body.classList.remove('dark-mode');
                 Utils.Storage.set('theme', 'light');
+                if (this.state.weatherMap) {
+                    this.state.weatherMap.removeLayer(this.darkMap);
+                    this.state.weatherMap.addLayer(this.lightMap);
+                }
             }
         });
     }
@@ -817,29 +824,39 @@ class BayanihanWeatherApp {
     }
 
     initializeMap() {
-        // Prevent map from being initialized more than once
         if (this.state.weatherMap) return;
 
         try {
-            // Center of the Philippines
             const mapCenter = [12.8797, 121.7740];
             const mapZoom = 6;
 
-            this.state.weatherMap = L.map('weather-map').setView(mapCenter, mapZoom);
+            // Define our tile layers
+            this.lightMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            });
 
-            // Add a tile layer (the map background)
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(this.state.weatherMap);
+            this.darkMap = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>'
+            });
+
+            this.state.weatherMap = L.map('weather-map', {
+                center: mapCenter,
+                zoom: mapZoom,
+                layers: [this.lightMap] // Start with the light map by default
+            });
+            
+            // Decide which map to show based on current theme
+            const currentTheme = Utils.Storage.get('theme');
+            if (currentTheme === 'dark') {
+                this.state.weatherMap.removeLayer(this.lightMap);
+                this.state.weatherMap.addLayer(this.darkMap);
+            }
 
             console.log('Map initialized successfully');
 
         } catch (error) {
             console.error('Failed to initialize map:', error);
-            const mapContainer = Utils.DOM.get('weather-map');
-            if (mapContainer) {
-                mapContainer.innerHTML = '<p style="text-align: center; color: red;">Could not load map.</p>';
-            }
+            Utils.DOM.get('weather-map').innerHTML = '<p>Could not load map.</p>';
         }
     }
 
@@ -991,12 +1008,12 @@ class BayanihanWeatherApp {
     }
 
     createAlertCard(alert) {
+        const severityClass = alert.severity || 'moderate';
+
         const card = Utils.DOM.create('div', {
-            className: 'alert-card',
+            className: `alert-card ${severityClass}`,
             'data-alert-id': alert.id
         });
-        
-        const severityClass = alert.severity || 'moderate';
         const timeAgo = Utils.Date.getRelativeTime(alert.updated);
         const alertType = alert.alertType || 'Weather Advisory';
         
@@ -1095,53 +1112,65 @@ class BayanihanWeatherApp {
     }
 
     renderAlertDetails(container, alert, details) {
-        const info = details.info || {};
+    const info = details.info || {};
 
-        const createDetailItem = (icon, label, value) => `
-            <div class="alert-detail-item">
-                <i class="fas fa-${icon}"></i>
-                <div class="alert-detail-item-content">
-                    <div class="label">${label}</div>
-                    <div class="value">${Utils.String.capitalize(value || 'N/A')}</div>
-                </div>
+    const createDetailItem = (icon, label, value) => `
+        <div class="alert-detail-item">
+            <i class="fas fa-${icon}"></i>
+            <div class="alert-detail-item-content">
+                <div class="label">${label}</div>
+                <div class="value">${Utils.String.capitalize(value || 'N/A')}</div>
             </div>
-        `;
+        </div>
+    `;
 
-        container.innerHTML = `
-            <div class="alert-detail-grid">
-                ${createDetailItem('shield-alt', 'Severity', info.severity || alert.severity)}
-                ${createDetailItem('bullhorn', 'Urgency', info.urgency || 'Unknown')}
-                ${createDetailItem('check-circle', 'Certainty', info.certainty || 'Unknown')}
-                ${createDetailItem('tag', 'Event', info.event || alert.alertType)}
+    // --- NEW PARSING LOGIC START ---
+    let mainDescription = '';
+    let watercoursesHTML = '';
+    if (info.description) {
+        const separator = 'WATERCOURSES LIKELY TO BE AFFECTED :';
+        const parts = info.description.split(separator);
+        mainDescription = `<p class="alert-detail-main-desc">${parts[0].trim()}</p>`;
+
+        if (parts[1]) {
+            const watercourses = parts[1].trim().split('+').filter(line => line.trim());
+            watercoursesHTML = `
+                <ul class="watercourses-list">
+                    ${watercourses.map(line => {
+                        // Replace **Province** with <strong>Province</strong>
+                        const formattedLine = line.trim().replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                        return `<li class="watercourses-item">${formattedLine}</li>`;
+                    }).join('')}
+                </ul>
+            `;
+        }
+    }
+
+    // Format instructions text to make specific parts bold
+    let instructionHTML = info.instruction || '';
+    instructionHTML = instructionHTML.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // --- NEW PARSING LOGIC END ---
+
+    container.innerHTML = `
+        <div class="alert-detail-grid">
+            ${createDetailItem('shield-alt', 'Severity', info.severity || alert.severity)}
+            ${createDetailItem('bullhorn', 'Urgency', info.urgency || 'Unknown')}
+            ${createDetailItem('check-circle', 'Certainty', info.certainty || 'Unknown')}
+            ${createDetailItem('tag', 'Event', info.event || alert.alertType)}
+        </div>
+        
+        <div class="alert-detail-section">
+            <h3 class="alert-detail-section-title"><i class="fas fa-info-circle"></i> Description</h3>
+            <div class="alert-detail-description">
+                ${mainDescription}
+                ${watercoursesHTML}
+            </div>
             </div>
             
-            ${info.headline ? `
-                <div class="alert-detail-section">
-                    <h3 class="alert-detail-section-title"><i class="fas fa-newspaper"></i> Headline</h3>
-                    <div class="alert-detail-description">${info.headline}</div>
-                </div>
-            ` : ''}
-            
-            ${info.description ? `
-                <div class="alert-detail-section">
-                    <h3 class="alert-detail-section-title"><i class="fas fa-info-circle"></i> Description</h3>
-                    <div class="alert-detail-description">${info.description}</div>
-                </div>
-            ` : ''}
-            
-            ${info.instruction ? `
+            ${instructionHTML ? `
                 <div class="alert-detail-section">
                     <h3 class="alert-detail-section-title"><i class="fas fa-directions"></i> Instructions</h3>
-                    <div class="alert-detail-instruction">${info.instruction}</div>
-                </div>
-            ` : ''}
-            
-            ${info.areas && info.areas.length > 0 ? `
-                <div class="alert-detail-section">
-                    <h3 class="alert-detail-section-title"><i class="fas fa-map-marked-alt"></i> Affected Areas</h3>
-                    <div class="alert-detail-areas">
-                        ${info.areas.map(area => `<div class="alert-detail-area">${area.areaDesc}</div>`).join('')}
-                    </div>
+                    <div class="alert-detail-instruction">${instructionHTML}</div>
                 </div>
             ` : ''}
         `;

@@ -830,7 +830,14 @@ section {
     transition: all var(--transition-normal);
     border: 1px solid var(--gray-200);
     cursor: pointer;
+    transition: all var(--transition-normal);
+    border-left: 4px solid transparent;
 }
+
+.alert-card.extreme { border-left-color: var(--alert-extreme); }
+.alert-card.severe { border-left-color: var(--alert-severe); }
+.alert-card.moderate { border-left-color: var(--alert-moderate); }
+.alert-card.minor { border-left-color: var(--alert-minor); }
 
 .alert-card:hover {
     transform: translateY(-4px);
@@ -1692,4 +1699,46 @@ body.dark-mode .no-alerts-state {
     height: 44px;
     padding: 0;
     box-shadow: var(--shadow-lg);
+}
+
+.modal-body .alert-detail-main-desc {
+    font-style: italic;
+    color: var(--gray-500);
+    margin-bottom: var(--spacing-4);
+}
+
+.modal-body .watercourses-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+}
+
+.modal-body .watercourses-item {
+    background-color: var(--gray-100);
+    padding: var(--spacing-3);
+    border-radius: var(--radius-lg);
+    border-left: 4px solid var(--primary-blue-light);
+}
+
+body.dark-mode .modal-body .watercourses-item {
+    background-color: var(--gray-700);
+}
+
+.modal-body .watercourses-item strong {
+    color: var(--primary-blue-dark);
+}
+
+body.dark-mode .modal-body .watercourses-item strong {
+    color: var(--primary-blue-light);
+}
+
+.modal-body .alert-detail-instruction strong {
+    color: var(--secondary-orange-dark);
+}
+
+body.dark-mode .modal-body .alert-detail-instruction strong {
+    color: var(--secondary-orange-light);
 }
