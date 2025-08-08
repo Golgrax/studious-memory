@@ -21,6 +21,7 @@ class BayanihanWeatherApp {
         this.init = this.init.bind(this);
         this.loadAlerts = this.loadAlerts.bind(this);
         this.updateDisplay = this.updateDisplay.bind(this);
+        this.applyFilters = this.applyFilters.bind(this);
     }
 
     /**
