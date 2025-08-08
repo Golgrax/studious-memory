@@ -758,6 +758,7 @@ class BayanihanWeatherApp {
                 if (this.state.weatherMap) {
                     this.state.weatherMap.removeLayer(this.lightMap);
                     this.state.weatherMap.addLayer(this.darkMap);
+                    this.state.weatherMap.getLayers().setAt(0, this.darkMap);
                 }
             } else {
                 document.body.classList.remove('dark-mode');
@@ -765,22 +766,11 @@ class BayanihanWeatherApp {
                 if (this.state.weatherMap) {
                     this.state.weatherMap.removeLayer(this.darkMap);
                     this.state.weatherMap.addLayer(this.lightMap);
+                    this.state.weatherMap.getLayers().setAt(0, this.lightMap);
                 }
             }
             this.updateCharts();
         });
-
-        if (e.target.checked) {
-            // ... dark mode logic ...
-            if (this.state.weatherMap) {
-                this.state.weatherMap.getLayers().setAt(0, this.darkMap);
-            }
-        } else {
-            // ... light mode logic ...
-            if (this.state.weatherMap) {
-                this.state.weatherMap.getLayers().setAt(0, this.lightMap);
-            }
-        }
     }
 
     initializeCharts() {
