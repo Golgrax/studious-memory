@@ -22,34 +22,36 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Fetch event - serve from cache when offline
+// Fetch event - serve from cache when offline, but always go to network for API calls
 self.addEventListener('fetch', (event) => {
+  const requestUrl = new URL(event.request.url);
+
+  // Don't cache API requests, always fetch from network.
+  if (requestUrl.pathname.startsWith('/api/')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // For other requests, use a cache-first strategy.
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Return cached version or fetch from network
-        if (response) {
-          return response;
-        }
-        
-        // Clone the request because it's a stream
-        const fetchRequest = event.request.clone();
-        
-        return fetch(fetchRequest).then((response) => {
-          // Check if we received a valid response
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
+        // Return cached version or fetch from network if not in cache
+        return response || fetch(event.request).then((fetchResponse) => {
+          // Check if we received a valid response to cache
+          if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== 'basic') {
+            return fetchResponse;
           }
           
-          // Clone the response because it's a stream
-          const responseToCache = response.clone();
+          // Clone the response because it's a one-time-use stream
+          const responseToCache = fetchResponse.clone();
           
           caches.open(CACHE_NAME)
             .then((cache) => {
               cache.put(event.request, responseToCache);
             });
           
-          return response;
+          return fetchResponse;
         });
       })
   );

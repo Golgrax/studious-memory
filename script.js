@@ -169,7 +169,8 @@ const Utils = {
 class WeatherAPI {
     constructor() {
         this.baseUrl = 'https://publicalert.pagasa.dost.gov.ph';
-        this.feedUrl = `${this.baseUrl}/feeds/`;
+        // Use the relative path to your new serverless function
+this.feedUrl = '/api/pagasa-proxy';
         this.cache = new Map();
         this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
         this.retryAttempts = 3;
@@ -413,8 +414,7 @@ class WeatherAPI {
                 headers: {
                     'Accept': 'application/xml, text/xml, */*',
                     'Cache-Control': 'no-cache'
-                },
-                mode: 'cors'
+                }
             });
 
             if (!response.ok) {
