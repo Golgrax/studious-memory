@@ -14,6 +14,7 @@ class AppState {
         this.lastUpdate = null;
         this.updateInterval = null;
         this.weatherMap = null;
+        this.mapLayers = [];
     }
 }
 
@@ -537,6 +538,8 @@ class BayanihanWeatherApp {
             // Initialize charts
             this.initializeCharts();
 
+            // Initialize the map
+            this.initializeMap();
 
             // Setup the theme toggle
             this.setupThemeToggle();
@@ -753,12 +756,14 @@ class BayanihanWeatherApp {
                 document.body.classList.add('dark-mode');
                 Utils.Storage.set('theme', 'dark');
                 if (this.state.weatherMap) {
+                    this.state.weatherMap.removeLayer(this.lightMap);
                     this.state.weatherMap.addLayer(this.darkMap);
                 }
             } else {
                 document.body.classList.remove('dark-mode');
                 Utils.Storage.set('theme', 'light');
                 if (this.state.weatherMap) {
+                    this.state.weatherMap.removeLayer(this.darkMap);
                     this.state.weatherMap.addLayer(this.lightMap);
                 }
             }
@@ -835,6 +840,48 @@ class BayanihanWeatherApp {
         }
     }
 
+    initializeMap() {
+        if (this.state.weatherMap) return;
+
+        try {
+            const mapCenter = [12.8797, 121.7740];
+            const mapZoom = 6;
+
+            // Base Layers
+            this.lightMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            });
+
+            this.darkMap = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>'
+            });
+            
+            // PAGASA Radar Layer (Real-time rainfall)
+            const radarTimestamp = new Date().getTime(); // Prevents caching
+            this.radarLayer = L.tileLayer(`https://rain-viewer.pagasa.dost.gov.ph/ArcGIS/rest/services/rain-viewer/MapServer/export?dpi=96&transparent=true&format=png32&layers=show%3A0&bbox={bbox}&bboxSR=3857&imageSR=3857&size=256%2C256&f=image&_ts=${radarTimestamp}`, {
+                attribution: 'PAGASA',
+                zIndex: 10
+            });
+
+            this.state.weatherMap = L.map('weather-map', {
+                center: mapCenter,
+                zoom: mapZoom,
+                layers: [this.lightMap, this.radarLayer] // Start with light map and radar
+            });
+
+            const currentTheme = Utils.Storage.get('theme');
+            if (currentTheme === 'dark') {
+                this.state.weatherMap.removeLayer(this.lightMap);
+                this.state.weatherMap.addLayer(this.darkMap);
+            }
+
+            console.log('Detailed Leaflet map initialized successfully.');
+
+        } catch (error) {
+            console.error('Failed to initialize Leaflet map:', error);
+            Utils.DOM.get('weather-map').innerHTML = '<p style="text-align: center; color: red;">Could not load map.</p>';
+        }
+    }
 
     async loadAlerts(useCache = true) {
         if (this.state.isLoading) return;
@@ -936,6 +983,7 @@ class BayanihanWeatherApp {
         this.updateStats();
         this.updateAlertsDisplay();
         this.updateCharts();
+        this.updateMapData();
         this.checkCriticalAlerts();
     }
 
@@ -1034,8 +1082,24 @@ class BayanihanWeatherApp {
             });
         }
         
+        // Inside the createAlertCard function...
         card.addEventListener('click', () => {
             this.showAlertDetails(alert);
+            if (this.state.weatherMap && alert.link) {
+                this.weatherAPI.fetchAlertDetails(alert.link).then(details => {
+                    if (details.info && details.info.areas && details.info.areas.length > 0) {
+                        const firstArea = details.info.areas[0];
+                        if (firstArea.polygons && firstArea.polygons.length > 0) {
+                            const coordinates = firstArea.polygons[0].split(' ').map(pair => {
+                                const parts = pair.split(',');
+                                return [parseFloat(parts[0]), parseFloat(parts[1])];
+                            });
+                            const tempPolygon = L.polygon(coordinates);
+                            this.state.weatherMap.flyTo(tempPolygon.getBounds().getCenter(), 8); // Zoom level 8
+                        }
+                    }
+                });
+            }
         });
         
         return card;
@@ -1252,7 +1316,55 @@ class BayanihanWeatherApp {
         }
     }
 
+    updateMapData() {
+        if (!this.state.weatherMap) return;
 
+        // Clear previous alert layers
+        this.state.mapLayers.forEach(layer => this.state.weatherMap.removeLayer(layer));
+        this.state.mapLayers = [];
+
+        const getSeverityColor = (severity) => {
+            switch (severity) {
+                case 'extreme': return '#dc2626';
+                case 'severe': return '#ea580c';
+                case 'moderate': return '#d97706';
+                case 'minor': return '#16a34a';
+                default: return '#6b7280';
+            }
+        };
+
+        this.state.filteredAlerts.forEach(alert => {
+            if (!alert.link) return;
+
+            this.weatherAPI.fetchAlertDetails(alert.link).then(details => {
+                if (!details.info || !details.info.areas) return;
+
+                details.info.areas.forEach(area => {
+                    if (!area.polygons || area.polygons.length === 0) return;
+
+                    area.polygons.forEach(polygonStr => {
+                        const coordinates = polygonStr.split(' ').map(pair => {
+                            const parts = pair.split(',');
+                            // Leaflet uses [latitude, longitude]
+                            return [parseFloat(parts[0]), parseFloat(parts[1])];
+                        });
+                        
+                        const polygon = L.polygon(coordinates, {
+                            color: getSeverityColor(details.info.severity),
+                            weight: 2,
+                            fillOpacity: 0.5
+                        }).addTo(this.state.weatherMap);
+
+                        // Add a detailed popup
+                        const popupContent = `<b>${details.info.event || 'Weather Alert'}</b><br>${area.areaDesc}`;
+                        polygon.bindPopup(popupContent);
+
+                        this.state.mapLayers.push(polygon);
+                    });
+                });
+            }).catch(err => console.error("Failed to fetch/draw alert details for map:", err));
+        });
+    }
 
     checkCriticalAlerts() {
         const criticalAlerts = this.state.alerts.filter(alert => 

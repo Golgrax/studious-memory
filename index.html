@@ -31,10 +31,7 @@
     
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-          
-    <!-- OpenLayers Map CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.5.0/css/ol.css" type="text/css">
-
+    
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css">
 
@@ -280,15 +277,35 @@
                     <p class="section-description">Geographic visualization of active weather alerts across the Philippines</p>
                 </div>
                 
-                <div class="map-container" id="pagasa-map-container">
-                    <iframe
-                        id="pagasa-map-iframe"
-                        src="/api/map-proxy"
-                        title="PAGASA Interactive Weather Map"
-                        frameborder="0"
-                        scrolling="no"
-                        allowfullscreen
-                    ></iframe>
+                <div class="map-container">
+                    <div class="map-placeholder" id="weather-map">
+                        <div class="map-loading">
+                            <div class="loading-spinner"></div>
+                            <p>Loading interactive map...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="map-legend">
+                        <h3 class="legend-title">Alert Severity Legend</h3>
+                        <div class="legend-items">
+                            <div class="legend-item">
+                                <span class="legend-color extreme"></span>
+                                <span class="legend-label">Extreme</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color severe"></span>
+                                <span class="legend-label">Severe</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color moderate"></span>
+                                <span class="legend-label">Moderate</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color minor"></span>
+                                <span class="legend-label">Minor</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -417,11 +434,18 @@
     </footer>
     
           
+    <!-- LeafletJS Map Script -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+
     <!-- Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- OpenLayers Map Script -->
-    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.5.0/build/ol.js"></script>
+    <!-- LeafletJS Map Script -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
 
     <!-- Your Application Scripts -->
     <script src="script.js"></script>
