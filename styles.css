@@ -1783,3 +1783,43 @@ body.dark-mode .modal-body .watercourses-item strong {
 body.dark-mode .modal-body .alert-detail-instruction strong {
     color: var(--secondary-orange-light);
 }
+
+body.dark-mode .header .site-title,
+body.dark-mode .header .site-subtitle,
+body.dark-mode .header .status-text,
+body.dark-mode .header .last-update,
+body.dark-mode .header .nav-link {
+    color: var(--gray-600); /* A light gray for readability */
+    opacity: 0.9;
+}
+
+body.dark-mode .header .nav-link:hover {
+    color: var(--gray-800); /* Brighter white on hover */
+    opacity: 1;
+}
+
+body.dark-mode .header .nav-link.active {
+    background: rgba(59, 130, 246, 0.2); /* A semi-transparent blue */
+    color: #ffffff;
+    opacity: 1;
+}
+
+body.dark-mode .header .nav-link.active::after {
+    background: var(--primary-blue-light);
+}
+
+/* 2. Fix the Modal Text */
+body.dark-mode .modal-title,
+body.dark-mode .modal-body .alert-detail-item-content .value {
+    color: var(--gray-800); /* Use a bright white for titles and values */
+}
+
+/* 3. Fix the Footer Background */
+body.dark-mode .footer {
+    background: #111827; /* The darkest color */
+    border-top: 1px solid var(--gray-100);
+}
+
+body.dark-mode .footer-bottom {
+    border-top-color: var(--gray-100);
+}
