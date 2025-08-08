@@ -543,6 +543,8 @@ class BayanihanWeatherApp {
 
             // Setup the theme toggle
             this.setupThemeToggle();
+
+            Chart.defaults.color = Utils.Storage.get('theme') === 'dark' ? '#d1d5db' : '#6b7280';
             
             // Load initial data
             await this.loadAlerts();
@@ -765,6 +767,7 @@ class BayanihanWeatherApp {
                     this.state.weatherMap.addLayer(this.lightMap);
                 }
             }
+            this.updateCharts();
         });
     }
 
@@ -783,18 +786,32 @@ class BayanihanWeatherApp {
                     borderWidth: 1
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: type === 'pie' ? 'top' : 'none',
-                    },
-                    title: {
-                        display: false // We already have a title in HTML
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: type === 'pie' ? 'top' : 'none',
+                    labels: {
+                        // This tells the legend (e.g., in the pie chart) to use light text
+                        color: '#d1d5db' // Corresponds to var(--gray-500)
                     }
+                },
+                title: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    ticks: { color: '#9ca3af' }, // var(--gray-400)
+                    grid: { color: 'rgba(156, 163, 175, 0.1)' }
+                },
+                x: {
+                    ticks: { color: '#9ca3af' }, // var(--gray-400)
+                    grid: { color: 'rgba(156, 163, 175, 0.1)' }
                 }
             }
+        }
         });
 
         const getCanvasContext = (id) => {
