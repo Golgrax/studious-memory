@@ -468,7 +468,7 @@
     (async () => {
     const container = document.getElementById('alerts-container');
     const noAlerts  = document.getElementById('no-alerts');
-    const url = '/api/feed';            // our CORS-free proxy
+    const url = 'https://publicalert.pagasa.dost.gov.ph/feeds/';            // our CORS-free proxy
     try {
         const r   = await fetch(url);
         const xml = await r.text();
