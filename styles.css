@@ -1886,3 +1886,16 @@ body.dark-mode .footer-social .social-link:hover {
     background: var(--primary-blue);
     color: var(--white);
 }
+
+/* --- PAGASA Iframe Map Styling --- */
+
+#pagasa-map-container {
+    padding: 0; 
+    overflow: hidden; 
+}
+
+#pagasa-map-iframe {
+    width: 100%;
+    height: 100%;
+    display: block;
+}

@@ -277,35 +277,14 @@
                     <p class="section-description">Geographic visualization of active weather alerts across the Philippines</p>
                 </div>
                 
-                <div class="map-container">
-                    <div class="map-placeholder" id="weather-map">
-                        <div class="map-loading">
-                            <div class="loading-spinner"></div>
-                            <p>Loading interactive map...</p>
-                        </div>
-                    </div>
-                    
-                    <div class="map-legend">
-                        <h3 class="legend-title">Alert Severity Legend</h3>
-                        <div class="legend-items">
-                            <div class="legend-item">
-                                <span class="legend-color extreme"></span>
-                                <span class="legend-label">Extreme</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-color severe"></span>
-                                <span class="legend-label">Severe</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-color moderate"></span>
-                                <span class="legend-label">Moderate</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-color minor"></span>
-                                <span class="legend-label">Minor</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="map-container" id="pagasa-map-container">
+                    <iframe
+                        id="pagasa-map-iframe"
+                        src="https://www.pagasa.dost.gov.ph/"
+                        title="PAGASA Interactive Weather Map"
+                        frameborder="0"
+                        allowfullscreen
+                    ></iframe>
                 </div>
             </div>
         </section>

@@ -538,8 +538,6 @@ class BayanihanWeatherApp {
             // Initialize charts
             this.initializeCharts();
 
-            // Initialize the map
-            this.initializeMap();
 
             // Setup the theme toggle
             this.setupThemeToggle();
@@ -840,42 +838,6 @@ class BayanihanWeatherApp {
         }
     }
 
-    initializeMap() {
-        if (this.state.weatherMap) return;
-
-        try {
-            const mapCenter = [12.8797, 121.7740];
-            const mapZoom = 6;
-
-            // Define our tile layers
-            this.lightMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            });
-
-            this.darkMap = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>'
-            });
-
-            this.state.weatherMap = L.map('weather-map', {
-                center: mapCenter,
-                zoom: mapZoom,
-                layers: [this.lightMap] // Start with the light map by default
-            });
-            
-            // Decide which map to show based on current theme
-            const currentTheme = Utils.Storage.get('theme');
-            if (currentTheme === 'dark') {
-                this.state.weatherMap.removeLayer(this.lightMap);
-                this.state.weatherMap.addLayer(this.darkMap);
-            }
-
-            console.log('Map initialized successfully');
-
-        } catch (error) {
-            console.error('Failed to initialize map:', error);
-            Utils.DOM.get('weather-map').innerHTML = '<p>Could not load map.</p>';
-        }
-    }
 
     async loadAlerts(useCache = true) {
         if (this.state.isLoading) return;
@@ -977,7 +939,6 @@ class BayanihanWeatherApp {
         this.updateStats();
         this.updateAlertsDisplay();
         this.updateCharts();
-        this.updateMapData();
         this.checkCriticalAlerts();
     }
 
@@ -1295,64 +1256,6 @@ class BayanihanWeatherApp {
     }
 
 
-    updateMapData() {
-        if (!this.state.weatherMap) return; // Don't run if map isn't initialized
-
-        // 1. Clear previous alert layers from the map
-        this.state.mapLayers.forEach(layer => this.state.weatherMap.removeLayer(layer));
-        this.state.mapLayers = [];
-
-        // 2. Helper function to determine color based on severity
-        const getSeverityColor = (severity) => {
-            switch (severity) {
-                case 'extreme': return '#dc2626';
-                case 'severe': return '#ea580c';
-                case 'moderate': return '#d97706';
-                case 'minor': return '#16a34a';
-                default: return '#6b7280';
-            }
-        };
-
-        // 3. Loop through the filtered alerts and draw them
-        this.state.filteredAlerts.forEach(alert => {
-            // We need to fetch the details to get the polygon data
-            if (alert.link) {
-                const proxiedUrl = `/api/pagasa-proxy?url=${encodeURIComponent(alert.link)}`;
-                fetch(proxiedUrl)
-                    .then(response => response.text())
-                    .then(xmlText => {
-                        const details = this.weatherAPI.parseCapFile(xmlText);
-                        
-                        if (details.info && details.info.areas) {
-                            details.info.areas.forEach(area => {
-                                if (area.polygons && area.polygons.length > 0) {
-                                    area.polygons.forEach(polygonStr => {
-                                        // Convert "lat,lon lat,lon" string to array of [lat, lon]
-                                        const coordinates = polygonStr.split(' ').map(pair => {
-                                            const parts = pair.split(',');
-                                            return [parseFloat(parts[0]), parseFloat(parts[1])];
-                                        });
-
-                                        // Create a Leaflet polygon
-                                        const polygon = L.polygon(coordinates, {
-                                            color: getSeverityColor(details.info.severity),
-                                            weight: 2,
-                                            fillOpacity: 0.5
-                                        }).addTo(this.state.weatherMap);
-
-                                        // Add a popup with info
-                                        polygon.bindPopup(`<b>${details.info.event}</b><br>${area.areaDesc}`);
-
-                                        // Store the layer so we can remove it later
-                                        this.state.mapLayers.push(polygon);
-                                    });
-                                }
-                            });
-                        }
-                    }).catch(err => console.error("Failed to fetch or draw alert details for map:", err));
-            }
-        });
-    }
 
     checkCriticalAlerts() {
         const criticalAlerts = this.state.alerts.filter(alert => 
