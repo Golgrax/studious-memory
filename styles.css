@@ -961,11 +961,18 @@ section {
 /* Map Components */
 .map-container {
     position: relative;
-    background: var(--white);
+    background: var(--gray-100); /* A fallback background color */
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-md);
-    overflow: hidden;
-    height: 750px;
+    overflow: hidden; /* This is crucial */
+    height: 750px; /* A good height for the map */
+    border: 1px solid var(--gray-200);
+}
+
+#pagasa-map-iframe {
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 .map-placeholder {
