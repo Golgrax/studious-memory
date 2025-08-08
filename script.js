@@ -168,8 +168,8 @@ const Utils = {
 // Weather API Handler
 class WeatherAPI {
     constructor() {
-        this.baseUrl = 'http://localhost:3001';
-        this.feedUrl = `${this.baseUrl}/api/pagasa/feeds/`;
+        this.baseUrl = 'https://publicalert.pagasa.dost.gov.ph';
+        this.feedUrl = `${this.baseUrl}/feeds/`;
         this.cache = new Map();
         this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
         this.retryAttempts = 3;

@@ -1,4 +1,6 @@
 // Simple CORS Proxy for PAGASA API
+// This can be deployed as a separate service or integrated into the main application
+
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
@@ -9,11 +11,6 @@ const PORT = process.env.PORT || 3001;
 // Enable CORS for all routes
 app.use(cors());
 
-// Health check endpoint
-app.get('/', (req, res) => {
-    res.json({ message: 'PAGASA CORS Proxy is running!' });
-});
-
 // Proxy endpoint for PAGASA feeds
 app.get('/api/pagasa/feeds', async (req, res) => {
     try {
@@ -21,7 +18,6 @@ app.get('/api/pagasa/feeds', async (req, res) => {
         const data = await response.text();
         
         res.set('Content-Type', 'application/xml');
-        res.set('Access-Control-Allow-Origin', '*'); // Explicit CORS
         res.send(data);
     } catch (error) {
         console.error('Error fetching PAGASA feeds:', error);
@@ -30,16 +26,15 @@ app.get('/api/pagasa/feeds', async (req, res) => {
 });
 
 // Proxy endpoint for individual CAP files
-app.get('/api/pagasa/cap/:path(*)', async (req, res) => {
+app.get('/api/pagasa/cap/*', async (req, res) => {
     try {
-        const capPath = req.params.path;
+        const capPath = req.params[0];
         const capUrl = `https://publicalert.pagasa.dost.gov.ph/${capPath}`;
         
         const response = await fetch(capUrl);
         const data = await response.text();
         
         res.set('Content-Type', 'application/xml');
-        res.set('Access-Control-Allow-Origin', '*');
         res.send(data);
     } catch (error) {
         console.error('Error fetching CAP file:', error);
@@ -48,6 +43,8 @@ app.get('/api/pagasa/cap/:path(*)', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`🚀 CORS Proxy running on port ${PORT}`);
-    console.log(`📡 Proxy URL: http://localhost:${PORT}/api/pagasa/feeds`);
+    console.log(`CORS Proxy server running on port ${PORT}`);
 });
+
+module.exports = app;
+
