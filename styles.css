@@ -1791,6 +1791,7 @@ body.dark-mode .modal-body .alert-detail-instruction strong {
     color: var(--secondary-orange-light);
 }
 
+
 /* --- START: Final Dark Mode Polish & Fixes --- */
 
 /* 1. Fix the Header Elements */
@@ -1818,23 +1819,28 @@ body.dark-mode .header .nav-link.active::after {
     background: var(--primary-blue-light);
 }
 
-/* This specifically removes the gray bar in dark mode */
-body.dark-mode .nav-menu {
-    background: transparent;
+/* 2. Fix the Modal Details View */
+body.dark-mode .modal-title {
+    color: var(--gray-900); /* Bright white for modal title */
 }
 
-
-/* 2. Fix the Modal Text */
-body.dark-mode .modal-title,
-body.dark-mode .modal-body .alert-detail-item-content .value {
-    color: var(--gray-800); /* Use a bright white for titles and values */
+/* THIS IS THE KEY FIX: Changes the white card background to dark gray */
+body.dark-mode .modal-body .alert-detail-item {
+    background-color: var(--gray-100); /* Uses a dark gray in dark mode */
 }
 
+/* This makes the text inside the detail cards bright and readable */
 body.dark-mode .modal-body .alert-detail-item-content .label {
     color: var(--gray-400); 
 }
+body.dark-mode .modal-body .alert-detail-item-content .value {
+    color: var(--gray-800); 
+}
 
 
+/* 3. Fix the Footer for Both Modes */
+
+/* These are the DEFAULT footer styles for LIGHT MODE */
 .footer {
     background: var(--gray-900); /* The original dark background */
     color: var(--gray-400);      /* Light gray text */
@@ -1851,6 +1857,7 @@ body.dark-mode .modal-body .alert-detail-item-content .label {
 }
 .footer-social .social-link {
     background: var(--gray-800);
+    color: var(--gray-400);
 }
 .footer-bottom {
     border-top-color: var(--gray-800);
@@ -1859,7 +1866,6 @@ body.dark-mode .modal-body .alert-detail-item-content .label {
 /* These are the OVERRIDE footer styles for DARK MODE */
 body.dark-mode .footer {
     background: #111827; /* The darkest color */
-    color: var(--gray-400); /* Keep light gray text */
     border-top: 1px solid var(--gray-100);
 }
 
@@ -1868,21 +1874,25 @@ body.dark-mode .footer-section h4 {
     color: var(--gray-900); /* Bright white titles in dark mode */
 }
 
-body.dark-mode .footer-links a {
-    color: var(--gray-400);
-}
-
 body.dark-mode .footer-links a:hover {
     color: var(--gray-900); /* Bright white on hover */
 }
 
+/* THIS IS THE KEY FIX: Keeps social icons dark in dark mode */
 body.dark-mode .footer-social .social-link {
-    background-color: var(--gray-700);
+    background: var(--gray-800); /* Uses the original dark color */
+    color: var(--gray-400);      /* Uses the original light icon color */
+}
+
+body.dark-mode .footer-social .social-link:hover {
+    background: var(--primary-blue);
+    color: #ffffff;
 }
 
 body.dark-mode .footer-bottom {
     border-top-color: var(--gray-100);
 }
+
 
 body.dark-mode .footer-social .social-link {
     background: var(--gray-800);
