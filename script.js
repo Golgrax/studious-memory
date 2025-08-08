@@ -14,6 +14,7 @@ class AppState {
         this.lastUpdate = null;
         this.updateInterval = null;
         this.weatherMap = null;
+        this.mapLayers = [];
     }
 }
 
@@ -551,6 +552,8 @@ class BayanihanWeatherApp {
             
             // Hide loading screen
             this.hideLoadingScreen();
+
+            this.initializeMap();
             
             console.log('Application initialized successfully');
         } catch (error) {
@@ -766,6 +769,18 @@ class BayanihanWeatherApp {
             }
             this.updateCharts();
         });
+
+        if (e.target.checked) {
+            // ... dark mode logic ...
+            if (this.state.weatherMap) {
+                this.state.weatherMap.getLayers().setAt(0, this.darkMap);
+            }
+        } else {
+            // ... light mode logic ...
+            if (this.state.weatherMap) {
+                this.state.weatherMap.getLayers().setAt(0, this.lightMap);
+            }
+        }
     }
 
     initializeCharts() {
@@ -837,6 +852,120 @@ class BayanihanWeatherApp {
         }
     }
 
+    initializeMap() {
+        if (this.state.weatherMap) return;
+
+        try {
+            const mapCenter = ol.proj.fromLonLat([121.7740, 12.8797]); // lon, lat
+            const mapZoom = 6;
+
+            // Define our tile layers
+            this.lightMap = new ol.layer.Tile({
+                source: new ol.source.OSM(),
+            });
+            
+            this.darkMap = new ol.layer.Tile({
+                source: new ol.source.XYZ({
+                    url: 'https://{a-c}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+                    attributions: '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+                }),
+            });
+
+            // This is the official PAGASA Himawari Satellite Layer
+            const pagasaSatelliteLayer = new ol.layer.Tile({
+                source: new ol.source.TileWMS({
+                    url: 'https://geoserver.pagasa.dost.gov.ph/geoserver/wms',
+                    params: { 'LAYERS': 'himawari:ir1', 'TILED': true },
+                    serverType: 'geoserver',
+                    transition: 0,
+                }),
+                opacity: 0.6 // Make it slightly transparent to see the map underneath
+            });
+
+            this.state.weatherMap = new ol.Map({
+                target: 'weather-map',
+                layers: [this.lightMap, pagasaSatelliteLayer],
+                view: new ol.View({
+                    center: mapCenter,
+                    zoom: mapZoom,
+                }),
+                controls: ol.control.defaults({ attribution: false }).extend([new ol.control.Attribution({ collapsible: true })]),
+            });
+
+            // Decide which map to show based on current theme
+            const currentTheme = Utils.Storage.get('theme');
+            if (currentTheme === 'dark') {
+                this.state.weatherMap.getLayers().setAt(0, this.darkMap); // Set the base layer to dark
+            }
+
+            console.log('Map initialized successfully with OpenLayers');
+
+        } catch (error) {
+            console.error('Failed to initialize OpenLayers map:', error);
+            Utils.DOM.get('weather-map').innerHTML = '<p style="text-align: center; color: red;">Could not load map.</p>';
+        }
+    }
+
+    updateMapData() {
+        if (!this.state.weatherMap) return;
+
+        // 1. Clear previous alert vector layers from the map
+        this.state.mapLayers.forEach(layer => this.state.weatherMap.removeLayer(layer));
+        this.state.mapLayers = [];
+
+        const getSeverityColor = (severity) => {
+            switch (severity) {
+                case 'extreme': return 'rgba(220, 38, 38, 0.5)';
+                case 'severe': return 'rgba(234, 88, 12, 0.5)';
+                case 'moderate': return 'rgba(217, 119, 6, 0.5)';
+                case 'minor': return 'rgba(22, 163, 74, 0.5)';
+                default: return 'rgba(107, 114, 128, 0.5)';
+            }
+        };
+        
+        // 2. Loop through filtered alerts to add their polygons
+        this.state.filteredAlerts.forEach(alert => {
+            if (!alert.link) return;
+
+            this.weatherAPI.fetchAlertDetails(alert.link).then(details => {
+                if (!details.info || !details.info.areas) return;
+
+                details.info.areas.forEach(area => {
+                    if (!area.polygons || area.polygons.length === 0) return;
+
+                    area.polygons.forEach(polygonStr => {
+                        const coordinates = polygonStr.split(' ').map(pair => {
+                            const parts = pair.split(',');
+                            // OpenLayers uses [longitude, latitude] format
+                            return ol.proj.fromLonLat([parseFloat(parts[1]), parseFloat(parts[0])]);
+                        });
+
+                        const polygonFeature = new ol.Feature({
+                            geometry: new ol.geom.Polygon([coordinates]),
+                        });
+
+                        const vectorLayer = new ol.layer.Vector({
+                            source: new ol.source.Vector({
+                                features: [polygonFeature],
+                            }),
+                            style: new ol.style.Style({
+                                stroke: new ol.style.Stroke({
+                                    color: getSeverityColor(details.info.severity).replace('0.5', '1'), // Solid border
+                                    width: 2,
+                                }),
+                                fill: new ol.style.Fill({
+                                    color: getSeverityColor(details.info.severity),
+                                }),
+                            }),
+                        });
+
+                        this.state.weatherMap.addLayer(vectorLayer);
+                        this.state.mapLayers.push(vectorLayer);
+                    });
+                });
+            }).catch(err => console.error("Failed to fetch alert details for map:", err));
+        });
+    }
 
     async loadAlerts(useCache = true) {
         if (this.state.isLoading) return;
@@ -939,6 +1068,7 @@ class BayanihanWeatherApp {
         this.updateAlertsDisplay();
         this.updateCharts();
         this.checkCriticalAlerts();
+        this.updateMapData();
     }
 
     updateStats() {
