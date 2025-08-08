@@ -219,7 +219,8 @@ this.feedUrl = '/api/pagasa-proxy';
         }
 
         try {
-            const response = await this.fetchWithRetry(capUrl);
+            const proxiedUrl = `/api/pagasa-proxy?url=${encodeURIComponent(capUrl)}`;
+            const response = await this.fetchWithRetry(proxiedUrl);
             const xmlText = await response.text();
             const alertDetails = this.parseCapFile(xmlText);
             
