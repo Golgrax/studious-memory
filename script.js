@@ -511,126 +511,7 @@ class WeatherAnalytics {
     }
 }
 
-// Simple Chart Implementation
-class SimpleChart {
-    constructor(canvasId) {
-        this.canvas = Utils.DOM.get(canvasId);
-        this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
-    }
 
-    drawBarChart(data, options = {}) {
-        if (!this.ctx) return;
-
-        const { labels, values } = data;
-        const { title = '', colors = [] } = options;
-
-        // Clear canvas
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-        // Set canvas size
-        this.canvas.width = this.canvas.offsetWidth;
-        this.canvas.height = this.canvas.offsetHeight;
-
-        const padding = 40;
-        const chartWidth = this.canvas.width - padding * 2;
-        const chartHeight = this.canvas.height - padding * 2;
-        const barWidth = chartWidth / labels.length * 0.8;
-        const maxValue = Math.max(...values);
-
-        if (maxValue === 0) {
-            this.drawNoDataMessage();
-            return;
-        }
-
-        // Draw bars
-        labels.forEach((label, index) => {
-            const value = values[index];
-            const barHeight = (value / maxValue) * chartHeight;
-            const x = padding + (index * chartWidth / labels.length) + (chartWidth / labels.length - barWidth) / 2;
-            const y = this.canvas.height - padding - barHeight;
-
-            // Draw bar
-            this.ctx.fillStyle = colors[index] || '#3b82f6';
-            this.ctx.fillRect(x, y, barWidth, barHeight);
-
-            // Draw label
-            this.ctx.fillStyle = '#374151';
-            this.ctx.font = '12px Inter, sans-serif';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(label, x + barWidth / 2, this.canvas.height - padding + 20);
-
-            // Draw value
-            this.ctx.fillStyle = '#6b7280';
-            this.ctx.font = '10px Inter, sans-serif';
-            this.ctx.fillText(value.toString(), x + barWidth / 2, y - 5);
-        });
-
-        // Draw title
-        if (title) {
-            this.ctx.fillStyle = '#1f2937';
-            this.ctx.font = 'bold 14px Inter, sans-serif';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(title, this.canvas.width / 2, 25);
-        }
-    }
-
-    drawPieChart(data, options = {}) {
-        if (!this.ctx) return;
-
-        const { labels, values } = data;
-        const { colors = [] } = options;
-
-        // Clear canvas
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-        // Set canvas size
-        this.canvas.width = this.canvas.offsetWidth;
-        this.canvas.height = this.canvas.offsetHeight;
-
-        const centerX = this.canvas.width / 2;
-        const centerY = this.canvas.height / 2;
-        const radius = Math.min(centerX, centerY) - 40;
-        const total = values.reduce((sum, value) => sum + value, 0);
-
-        if (total === 0) {
-            this.drawNoDataMessage();
-            return;
-        }
-
-        let currentAngle = -Math.PI / 2;
-
-        values.forEach((value, index) => {
-            const sliceAngle = (value / total) * 2 * Math.PI;
-            
-            // Draw slice
-            this.ctx.beginPath();
-            this.ctx.moveTo(centerX, centerY);
-            this.ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
-            this.ctx.closePath();
-            this.ctx.fillStyle = colors[index] || `hsl(${index * 60}, 70%, 60%)`;
-            this.ctx.fill();
-
-            // Draw label
-            const labelAngle = currentAngle + sliceAngle / 2;
-            const labelX = centerX + Math.cos(labelAngle) * (radius + 20);
-            const labelY = centerY + Math.sin(labelAngle) * (radius + 20);
-            
-            this.ctx.fillStyle = '#374151';
-            this.ctx.font = '12px Inter, sans-serif';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(`${labels[index]}: ${value}`, labelX, labelY);
-
-            currentAngle += sliceAngle;
-        });
-    }
-
-    drawNoDataMessage() {
-        this.ctx.fillStyle = '#9ca3af';
-        this.ctx.font = '16px Inter, sans-serif';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText('No data available', this.canvas.width / 2, this.canvas.height / 2);
-    }
-}
 
 // Main Application Class
 class BayanihanWeatherApp {
@@ -841,13 +722,61 @@ class BayanihanWeatherApp {
         });
     }
 
+    // REPLACE the old initializeCharts method with this new one
+
     initializeCharts() {
-        this.charts = {
-            region: new SimpleChart('region-canvas'),
-            severity: new SimpleChart('severity-canvas'),
-            timeline: new SimpleChart('timeline-canvas'),
-            pattern: new SimpleChart('pattern-canvas')
+        this.charts = {}; // Reset charts object
+
+        const createChartConfig = (type, title) => ({
+            type: type,
+            data: {
+                labels: [],
+                datasets: [{
+                    label: title,
+                    data: [],
+                    backgroundColor: [],
+                    borderColor: [],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: type === 'pie' ? 'top' : 'none',
+                    },
+                    title: {
+                        display: false // We already have a title in HTML
+                    }
+                }
+            }
+        });
+
+        const getCanvasContext = (id) => {
+            const canvas = Utils.DOM.get(id);
+            return canvas ? canvas.getContext('2d') : null;
         };
+
+        const regionCtx = getCanvasContext('region-canvas');
+        if (regionCtx) {
+            this.charts.region = new Chart(regionCtx, createChartConfig('bar', 'Alerts by Region'));
+        }
+
+        const severityCtx = getCanvasContext('severity-canvas');
+        if (severityCtx) {
+            this.charts.severity = new Chart(severityCtx, createChartConfig('pie', 'Alerts by Severity'));
+        }
+        
+        const timelineCtx = getCanvasContext('timeline-canvas');
+        if (timelineCtx) {
+            this.charts.timeline = new Chart(timelineCtx, createChartConfig('line', 'Alerts in last 24H'));
+        }
+
+        const patternCtx = getCanvasContext('pattern-canvas');
+        if (patternCtx) {
+            this.charts.pattern = new Chart(patternCtx, createChartConfig('bar', 'Alerts by Type'));
+        }
     }
 
     initializeMap() {
@@ -1230,68 +1159,64 @@ class BayanihanWeatherApp {
         const regionData = this.analytics.getAlertsByRegion();
         const severityData = this.analytics.getAlertsBySeverity();
 
-        // Region chart
+        // Chart Colors
+        const chartColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+        const severityColors = {
+            extreme: '#dc2626',
+            severe: '#ea580c',
+            moderate: '#d97706',
+            minor: '#16a34a'
+        };
+        
+        // 1. Region Chart (Bar)
         if (this.charts.region) {
-            const regionLabels = Object.keys(regionData).slice(0, 10); // Top 10 regions
+            const regionLabels = Object.keys(regionData).slice(0, 10);
             const regionValues = regionLabels.map(region => regionData[region].length);
-            this.charts.region.drawBarChart({
-                labels: regionLabels,
-                values: regionValues
-            }, {
-                colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
-            });
+            
+            this.charts.region.data.labels = regionLabels;
+            this.charts.region.data.datasets[0].data = regionValues;
+            this.charts.region.data.datasets[0].backgroundColor = regionLabels.map((_, i) => chartColors[i % chartColors.length]);
+            this.charts.region.update();
         }
 
-        // Severity chart
+        // 2. Severity Chart (Pie)
         if (this.charts.severity) {
             const severityLabels = Object.keys(severityData);
             const severityValues = severityLabels.map(severity => severityData[severity].length);
-            const severityColors = severityLabels.map(severity => {
-                switch (severity) {
-                    case 'extreme': return '#dc2626';
-                    case 'severe': return '#ea580c';
-                    case 'moderate': return '#d97706';
-                    case 'minor': return '#16a34a';
-                    default: return '#6b7280';
-                }
-            });
-            this.charts.severity.drawPieChart({
-                labels: severityLabels,
-                values: severityValues
-            }, {
-                colors: severityColors
-            });
-        }
-
-        // Timeline chart (simplified)
-        if (this.charts.timeline) {
-            const hours = Array.from({length: 24}, (_, i) => i);
-            const hourlyData = hours.map(hour => {
-                const count = this.state.alerts.filter(alert => {
-                    const alertHour = new Date(alert.updated).getHours();
-                    return alertHour === hour;
-                }).length;
-                return count;
-            });
             
-            this.charts.timeline.drawBarChart({
-                labels: hours.map(h => `${h}:00`),
-                values: hourlyData
-            }, {
-                colors: ['#3b82f6']
+            this.charts.severity.data.labels = severityLabels.map(s => s.charAt(0).toUpperCase() + s.slice(1));
+            this.charts.severity.data.datasets[0].data = severityValues;
+            this.charts.severity.data.datasets[0].backgroundColor = severityLabels.map(s => severityColors[s] || '#6b7280');
+            this.charts.severity.update();
+        }
+        
+        // 3. Timeline Chart (Line)
+        if (this.charts.timeline) {
+            const hours = Array.from({length: 24}, (_, i) => `${i}:00`);
+            const hourlyData = Array(24).fill(0);
+            
+            this.state.alerts.forEach(alert => {
+                const alertHour = new Date(alert.updated).getHours();
+                hourlyData[alertHour]++;
             });
+
+            this.charts.timeline.data.labels = hours;
+            this.charts.timeline.data.datasets[0].data = hourlyData;
+            this.charts.timeline.data.datasets[0].borderColor = chartColors[0];
+            this.charts.timeline.data.datasets[0].backgroundColor = 'rgba(59, 130, 246, 0.1)';
+            this.charts.timeline.data.datasets[0].fill = true;
+            this.charts.timeline.update();
         }
 
-        // Pattern chart (alert types)
+        // 4. Alert Type Chart (Bar)
         if (this.charts.pattern) {
             const typeLabels = Object.keys(stats.alertTypes);
             const typeValues = typeLabels.map(type => stats.alertTypes[type]);
-            this.charts.pattern.drawBarChart({
-                labels: typeLabels,
-                values: typeValues
-            }, {
-                colors: ['#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
-            });
+            
+            this.charts.pattern.data.labels = typeLabels;
+            this.charts.pattern.data.datasets[0].data = typeValues;
+            this.charts.pattern.data.datasets[0].backgroundColor = typeLabels.map((_, i) => chartColors[i % chartColors.length]);
+            this.charts.pattern.update();
         }
     }
 
