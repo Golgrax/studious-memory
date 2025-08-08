@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "cors-proxy.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/cors-proxy.js"
+    }
+  ]
+}
