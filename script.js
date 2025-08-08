@@ -856,9 +856,12 @@ class BayanihanWeatherApp {
                 attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>'
             });
             
-            // PAGASA Radar Layer (Real-time rainfall)
-            const radarTimestamp = new Date().getTime(); // Prevents caching
-            this.radarLayer = L.tileLayer(`https://rain-viewer.pagasa.dost.gov.ph/ArcGIS/rest/services/rain-viewer/MapServer/export?dpi=96&transparent=true&format=png32&layers=show%3A0&bbox={bbox}&bboxSR=3857&imageSR=3857&size=256%2C256&f=image&_ts=${radarTimestamp}`, {
+            // --- THIS IS THE CORRECTED RADAR LAYER ---
+            // We now use L.tileLayer.wms to correctly handle the PAGASA service
+            this.radarLayer = L.tileLayer.wms('https://rain-viewer.pagasa.dost.gov.ph/ArcGIS/services/rain-viewer/MapServer/WmsServer', {
+                layers: '0', // The layer ID for the radar imagery
+                format: 'image/png',
+                transparent: true,
                 attribution: 'PAGASA',
                 zIndex: 10
             });
@@ -875,7 +878,7 @@ class BayanihanWeatherApp {
                 this.state.weatherMap.addLayer(this.darkMap);
             }
 
-            console.log('Detailed Leaflet map initialized successfully.');
+            console.log('Detailed Leaflet map initialized successfully with WMS Radar.');
 
         } catch (error) {
             console.error('Failed to initialize Leaflet map:', error);
