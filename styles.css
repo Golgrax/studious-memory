@@ -1823,6 +1823,10 @@ body.dark-mode .modal-body .alert-detail-item-content .value {
     color: var(--gray-800); /* Use a bright white for titles and values */
 }
 
+body.dark-mode .modal-body .alert-detail-item-content .label {
+    color: var(--gray-400); 
+}
+
 
 .footer {
     background: var(--gray-900); /* The original dark background */
@@ -1871,4 +1875,14 @@ body.dark-mode .footer-social .social-link {
 
 body.dark-mode .footer-bottom {
     border-top-color: var(--gray-100);
+}
+
+body.dark-mode .footer-social .social-link {
+    background: var(--gray-800);
+    color: var(--gray-400);
+}
+
+body.dark-mode .footer-social .social-link:hover {
+    background: var(--primary-blue);
+    color: var(--white);
 }
