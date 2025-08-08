@@ -14,7 +14,6 @@ class AppState {
         this.lastUpdate = null;
         this.updateInterval = null;
         this.weatherMap = null;
-        this.mapLayers = [];
     }
 }
 
