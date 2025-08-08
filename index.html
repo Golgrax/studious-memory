@@ -35,6 +35,9 @@
     <link rel="preload" href="assets/fonts/inter-regular.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="assets/fonts/inter-bold.woff2" as="font" type="font/woff2" crossorigin>
 
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <i class="fas fa-sun" style="font-size: 2rem; color:#f97316;"></i>
     <!-- Progressive Web App Manifest -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e40af">
@@ -485,7 +488,7 @@
             </div>
             <div class="alert-card-body">
             <p>Updated: ${e.updated}</p>
-            <a href="${e.link}" target="_blank" class="alert-view-btn">View CAP file</a>
+            <a href="alert.html?title=${encodeURIComponent(title)}&updated=${encodeURIComponent(updated)}&link=${encodeURIComponent(link)}" target="_blank">View Details</a>
             </div>
         </div>
         `).join('');
