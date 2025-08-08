@@ -540,6 +540,9 @@ class BayanihanWeatherApp {
 
             // Initialize the map
             this.initializeMap();
+
+            // Setup the theme toggle
+            this.setupThemeToggle();
             
             // Load initial data
             await this.loadAlerts();
@@ -598,7 +601,22 @@ class BayanihanWeatherApp {
                 this.resumeAutoRefresh();
             }
         });
+
+        const backToTopButton = Utils.DOM.get('back-to-top');
+        if (backToTopButton) {
+            window.onscroll = () => {
+                if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+                    backToTopButton.style.display = 'flex';
+                } else {
+                    backToTopButton.style.display = 'none';
+                }
+            };
+            backToTopButton.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
     }
+    
 
     setupNavigation() {
         const navToggle = Utils.DOM.get('nav-toggle');
@@ -722,7 +740,26 @@ class BayanihanWeatherApp {
         });
     }
 
-    // REPLACE the old initializeCharts method with this new one
+    setupThemeToggle() {
+        const toggle = Utils.DOM.get('dark-mode-toggle');
+        if (!toggle) return;
+
+        const currentTheme = Utils.Storage.get('theme');
+        if (currentTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            toggle.checked = true;
+        }
+
+        toggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                document.body.classList.add('dark-mode');
+                Utils.Storage.set('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                Utils.Storage.set('theme', 'light');
+            }
+        });
+    }
 
     initializeCharts() {
         this.charts = {}; // Reset charts object
@@ -914,11 +951,13 @@ class BayanihanWeatherApp {
         const stats = this.analytics.getStats();
         
         // Update stat cards
+        const totalCount = Utils.DOM.get('total-count');
         const severeCount = Utils.DOM.get('severe-count');
         const moderateCount = Utils.DOM.get('moderate-count');
         const minorCount = Utils.DOM.get('minor-count');
         const regionsCount = Utils.DOM.get('regions-count');
-        
+
+        if (totalCount) totalCount.textContent = stats.total;
         if (severeCount) severeCount.textContent = stats.severe;
         if (moderateCount) moderateCount.textContent = stats.moderate;
         if (minorCount) minorCount.textContent = stats.minor;
@@ -1057,62 +1096,51 @@ class BayanihanWeatherApp {
 
     renderAlertDetails(container, alert, details) {
         const info = details.info || {};
-        
-        container.innerHTML = `
-            <div class="alert-detail-header">
-                <div class="alert-detail-meta">
-                    <div class="alert-detail-meta-item">
-                        <div class="alert-detail-meta-label">Severity</div>
-                        <div class="alert-detail-meta-value">${Utils.String.capitalize(info.severity || alert.severity)}</div>
-                    </div>
-                    <div class="alert-detail-meta-item">
-                        <div class="alert-detail-meta-label">Urgency</div>
-                        <div class="alert-detail-meta-value">${Utils.String.capitalize(info.urgency || 'Unknown')}</div>
-                    </div>
-                    <div class="alert-detail-meta-item">
-                        <div class="alert-detail-meta-label">Certainty</div>
-                        <div class="alert-detail-meta-value">${Utils.String.capitalize(info.certainty || 'Unknown')}</div>
-                    </div>
-                    <div class="alert-detail-meta-item">
-                        <div class="alert-detail-meta-label">Event</div>
-                        <div class="alert-detail-meta-value">${info.event || alert.alertType}</div>
-                    </div>
+
+        const createDetailItem = (icon, label, value) => `
+            <div class="alert-detail-item">
+                <i class="fas fa-${icon}"></i>
+                <div class="alert-detail-item-content">
+                    <div class="label">${label}</div>
+                    <div class="value">${Utils.String.capitalize(value || 'N/A')}</div>
                 </div>
+            </div>
+        `;
+
+        container.innerHTML = `
+            <div class="alert-detail-grid">
+                ${createDetailItem('shield-alt', 'Severity', info.severity || alert.severity)}
+                ${createDetailItem('bullhorn', 'Urgency', info.urgency || 'Unknown')}
+                ${createDetailItem('check-circle', 'Certainty', info.certainty || 'Unknown')}
+                ${createDetailItem('tag', 'Event', info.event || alert.alertType)}
             </div>
             
             ${info.headline ? `
                 <div class="alert-detail-section">
-                    <h3 class="alert-detail-section-title">Headline</h3>
+                    <h3 class="alert-detail-section-title"><i class="fas fa-newspaper"></i> Headline</h3>
                     <div class="alert-detail-description">${info.headline}</div>
                 </div>
             ` : ''}
             
             ${info.description ? `
                 <div class="alert-detail-section">
-                    <h3 class="alert-detail-section-title">Description</h3>
+                    <h3 class="alert-detail-section-title"><i class="fas fa-info-circle"></i> Description</h3>
                     <div class="alert-detail-description">${info.description}</div>
                 </div>
             ` : ''}
             
             ${info.instruction ? `
                 <div class="alert-detail-section">
-                    <h3 class="alert-detail-section-title">Instructions</h3>
+                    <h3 class="alert-detail-section-title"><i class="fas fa-directions"></i> Instructions</h3>
                     <div class="alert-detail-instruction">${info.instruction}</div>
                 </div>
             ` : ''}
             
             ${info.areas && info.areas.length > 0 ? `
                 <div class="alert-detail-section">
-                    <h3 class="alert-detail-section-title">Affected Areas</h3>
+                    <h3 class="alert-detail-section-title"><i class="fas fa-map-marked-alt"></i> Affected Areas</h3>
                     <div class="alert-detail-areas">
-                        ${info.areas.map(area => `
-                            <div class="alert-detail-area">
-                                <div class="alert-detail-area-name">${area.areaDesc}</div>
-                                ${area.polygons.length > 0 ? `
-                                    <div class="alert-detail-area-coords">${area.polygons[0]}</div>
-                                ` : ''}
-                            </div>
-                        `).join('')}
+                        ${info.areas.map(area => `<div class="alert-detail-area">${area.areaDesc}</div>`).join('')}
                     </div>
                 </div>
             ` : ''}

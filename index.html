@@ -77,7 +77,15 @@
                         <span class="update-label">Last Update:</span>
                         <time id="last-update-time" datetime="">--:--</time>
                     </div>
+                      
                 </div>
+
+                <div class="theme-switch-wrapper">
+                    <label class="theme-switch" for="dark-mode-toggle">
+                        <input type="checkbox" id="dark-mode-toggle" />
+                        <span class="slider round"></span>
+                    </label>
+                </div>    
                 
                 <nav class="main-nav" role="navigation" aria-label="Main navigation">
                     <button class="nav-toggle" aria-expanded="false" aria-controls="nav-menu" id="nav-toggle">
@@ -122,6 +130,16 @@
                 
                 <!-- Quick Stats -->
                 <div class="stats-grid">
+                    <!-- ADD THIS NEW CARD -->
+                    <div class="stat-card">
+                        <div class="stat-icon total">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="total-count">0</div>
+                            <div class="stat-label">Total Active Alerts</div>
+                        </div>
+                    </div>
                     <div class="stat-card">
                         <div class="stat-icon severe">
                             <i class="fas fa-exclamation-triangle"></i>
@@ -432,8 +450,8 @@
     <!-- Your Application Scripts -->
     <script src="script.js"></script>
 
-
-        
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="btn btn-primary" title="Go to top"><i class="fas fa-arrow-up"></i></button>
 </body>
 </html>
 

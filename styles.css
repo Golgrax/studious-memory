@@ -574,6 +574,11 @@ section {
     color: var(--primary-blue);
 }
 
+.stat-icon.total {
+    background: rgba(107, 114, 128, 0.1);
+    color: var(--gray-600);
+}
+
 .stat-content {
     flex: 1;
 }
@@ -1492,3 +1497,199 @@ section {
     }
 }
 
+.modal-body .alert-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+    padding-bottom: var(--spacing-6);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.modal-body .alert-detail-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    background-color: var(--gray-50);
+    padding: var(--spacing-3);
+    border-radius: var(--radius-lg);
+}
+
+.modal-body .alert-detail-item i {
+    font-size: var(--font-size-xl);
+    color: var(--primary-blue);
+    width: 24px;
+    text-align: center;
+}
+
+.modal-body .alert-detail-item-content .label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.modal-body .alert-detail-item-content .value {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--gray-900);
+}
+
+.modal-body .alert-detail-section {
+    margin-bottom: var(--spacing-5);
+}
+
+.modal-body .alert-detail-section-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--gray-800);
+    margin-bottom: var(--spacing-3);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.modal-body .alert-detail-description,
+.modal-body .alert-detail-instruction {
+    background-color: var(--gray-100);
+    padding: var(--spacing-4);
+    border-radius: var(--radius-lg);
+    line-height: var(--line-height-relaxed);
+}
+
+.modal-body .alert-detail-areas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+}
+
+.modal-body .alert-detail-area {
+    padding: var(--spacing-2) var(--spacing-3);
+    background-color: var(--gray-100);
+    border-radius: var(--radius-md);
+    font-weight: var(--font-weight-medium);
+}
+
+/* Dark Mode Modal Adjustments */
+body.dark-mode .modal-body .alert-detail-item {
+    background-color: var(--gray-800);
+}
+body.dark-mode .modal-body .alert-detail-description,
+body.dark-mode .modal-body .alert-detail-instruction,
+body.dark-mode .modal-body .alert-detail-area {
+    background-color: var(--gray-700);
+}
+
+.theme-switch-wrapper {
+  display: flex;
+  align-items: center;
+}
+.theme-switch {
+  display: inline-block;
+  height: 24px;
+  position: relative;
+  width: 44px;
+}
+.theme-switch input {
+  display:none;
+}
+.slider {
+  background-color: #ccc;
+  bottom: 0;
+  cursor: pointer;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  transition: .4s;
+}
+.slider:before {
+  background-color: #fff;
+  bottom: 4px;
+  content: "";
+  height: 16px;
+  left: 4px;
+  position: absolute;
+  transition: .4s;
+  width: 16px;
+}
+input:checked + .slider {
+  background-color: var(--primary-blue-light);
+}
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+.slider.round {
+  border-radius: 34px;
+}
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Dark Mode Variable Overrides */
+body.dark-mode {
+    --primary-blue: #3b82f6;
+    --primary-blue-dark: #2563eb;
+    
+    --white: #111827;
+    --gray-50: #1f2937;
+    --gray-100: #374151;
+    --gray-200: #4b5563;
+    --gray-300: #6b7280;
+    --gray-400: #9ca3af;
+    --gray-500: #d1d5db;
+    --gray-600: #e5e7eb;
+    --gray-700: #f3f4f6;
+    --gray-800: #f9fafb;
+    --gray-900: #ffffff;
+    
+    background-color: var(--gray-900);
+    color: var(--gray-300);
+}
+
+body.dark-mode .header {
+    background: #111827;
+}
+
+body.dark-mode .stat-card,
+body.dark-mode .filter-section,
+body.dark-mode .alert-card,
+body.dark-mode .chart-container,
+body.dark-mode .map-container,
+body.dark-mode .modal-content {
+    background: var(--gray-50);
+    border-color: var(--gray-100);
+}
+
+body.dark-mode .filter-select,
+body.dark-mode .filter-input {
+    background-color: var(--gray-100);
+    border-color: var(--gray-200);
+    color: var(--gray-800);
+}
+
+body.dark-mode .map-legend {
+    background: rgba(31, 41, 55, 0.9);
+}
+
+body.dark-mode .chart-container .chart-title {
+    color: var(--gray-800);
+}
+
+body.dark-mode .no-alerts-state {
+    background: var(--gray-50);
+}
+
+#back-to-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: none;
+    z-index: var(--z-fixed);
+    border-radius: var(--radius-full);
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    box-shadow: var(--shadow-lg);
+}
