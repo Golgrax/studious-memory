@@ -1693,7 +1693,7 @@ body.dark-mode .stat-label {
 }
 
 body.dark-mode .nav-menu {
-    background: #1f2937;
+    background: transparent;
 }
 
 body.dark-mode .header {
@@ -1784,6 +1784,9 @@ body.dark-mode .modal-body .alert-detail-instruction strong {
     color: var(--secondary-orange-light);
 }
 
+/* --- START: Final Dark Mode Polish & Fixes --- */
+
+/* 1. Fix the Header Elements */
 body.dark-mode .header .site-title,
 body.dark-mode .header .site-subtitle,
 body.dark-mode .header .status-text,
@@ -1808,16 +1811,62 @@ body.dark-mode .header .nav-link.active::after {
     background: var(--primary-blue-light);
 }
 
+/* This specifically removes the gray bar in dark mode */
+body.dark-mode .nav-menu {
+    background: transparent;
+}
+
+
 /* 2. Fix the Modal Text */
 body.dark-mode .modal-title,
 body.dark-mode .modal-body .alert-detail-item-content .value {
     color: var(--gray-800); /* Use a bright white for titles and values */
 }
 
-/* 3. Fix the Footer Background */
+
+.footer {
+    background: var(--gray-900); /* The original dark background */
+    color: var(--gray-400);      /* Light gray text */
+}
+.footer-section h3,
+.footer-section h4 {
+    color: #ffffff; /* White titles */
+}
+.footer-links a {
+    color: var(--gray-400);
+}
+.footer-links a:hover {
+    color: #ffffff;
+}
+.footer-social .social-link {
+    background: var(--gray-800);
+}
+.footer-bottom {
+    border-top-color: var(--gray-800);
+}
+
+/* These are the OVERRIDE footer styles for DARK MODE */
 body.dark-mode .footer {
     background: #111827; /* The darkest color */
+    color: var(--gray-400); /* Keep light gray text */
     border-top: 1px solid var(--gray-100);
+}
+
+body.dark-mode .footer-section h3,
+body.dark-mode .footer-section h4 {
+    color: var(--gray-900); /* Bright white titles in dark mode */
+}
+
+body.dark-mode .footer-links a {
+    color: var(--gray-400);
+}
+
+body.dark-mode .footer-links a:hover {
+    color: var(--gray-900); /* Bright white on hover */
+}
+
+body.dark-mode .footer-social .social-link {
+    background-color: var(--gray-700);
 }
 
 body.dark-mode .footer-bottom {
