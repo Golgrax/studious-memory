@@ -2,6 +2,7 @@ from syqlorix import *
 
 doc = Syqlorix()
 
+# --- Define the main route --- 
 @doc.route('/')
 def main_page(request):
     return Syqlorix(
@@ -634,6 +635,9 @@ def main_page(request):
             script(src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"),
             script(src="https://cdn.jsdelivr.net/npm/chart.js"),
             script(src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"),
-            script(src="https://syqlorix-canvas.vercel.app/script.js")
+            script(src="script.js")
         )
     )
+
+# To run this script, save it as app.py and execute:
+# syqlorix run app.py

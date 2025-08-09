@@ -187,7 +187,7 @@ this.feedUrl = '/api/pagasa-proxy';
         }
 
         try {
-            const response = await this.fetchWithRetry(this.feedUrl);
+            const response = await fetchWithRetry(this.feedUrl);
             const xmlText = await response.text();
             const alerts = this.parseAtomFeed(xmlText);
             
@@ -221,7 +221,7 @@ this.feedUrl = '/api/pagasa-proxy';
 
         try {
             const proxiedUrl = `/api/pagasa-proxy?url=${encodeURIComponent(capUrl)}`;
-            const response = await this.fetchWithRetry(proxiedUrl);
+            const response = await fetchWithRetry(proxiedUrl);
             const xmlText = await response.text();
             const alertDetails = this.parseCapFile(xmlText);
             
@@ -237,7 +237,6 @@ this.feedUrl = '/api/pagasa-proxy';
             throw new Error('Failed to fetch alert details.');
         }
     }
-
     parseAtomFeed(xmlText) {
         try {
             const parser = new DOMParser();
@@ -1495,3 +1494,27 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+async function fetchWithRetry(url, attempt = 1) {
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/xml, text/xml, */*',
+                'Cache-Control': 'no-cache'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        return response;
+    } catch (error) {
+        if (attempt < 3) {
+            console.warn(`Fetch attempt ${attempt} failed, retrying...`);
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+            return fetchWithRetry(url, attempt + 1);
+        }
+        throw error;
+    }
+}
