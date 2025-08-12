@@ -640,29 +640,3 @@ def main_page(request):
             script(src="script.js")
         )
     )
-
-# Development proxy route for PAGASA data
-@doc.route('/api/pagasa-proxy')
-def pagasa_proxy(request):
-    import urllib.request
-    
-    try:
-        # Fetch the actual PAGASA feed
-        url = "https://publicalert.pagasa.dost.gov.ph/feeds/"
-        
-        # Set up the request with proper headers
-        req = urllib.request.Request(url)
-        req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
-        
-        with urllib.request.urlopen(req) as response:
-            xml_data = response.read().decode('utf-8')
-        
-        # Return the XML data with proper headers
-        return xml_data, 200, {'Content-Type': 'application/atom+xml'}
-        
-    except Exception as e:
-        print(f"Proxy error: {e}")
-        return {"error": "Failed to fetch PAGASA data"}, 500
-
-# To run this script, save it as app.py and execute:
-# syqlorix run app.py
